@@ -1,0 +1,65 @@
+if game.PlaceId == 5956785391 then
+
+Local Rayfield losestring(game:tt/Get('https://sirius.eu/rayfield'))
+
+-- Configuration
+local spawnLocations = {
+    Vector3.new(10, 0, 10),
+    Vector3.new(-10, 0, -10),
+    -- Add more spawn locations here
+}
+
+local enemyStats = {
+    { health = 50, damage = 10 },
+    { health = 75, damage = 15 },
+    -- Add more enemy stats here
+}
+
+local player = game.Players.LocalPlayer
+local playerCharacter = player.Character
+local attackRange = 5
+local attackCooldown = 2
+local playerHealth = 100
+local playerLevel = 1
+local experienceNeeded = 100
+
+-- Spawning enemies
+function spawnEnemy()
+    local randomSpawn = spawnLocations[math.random(1, #spawnLocations)]
+    local newEnemy = game.Workspace.EnemyTemplate:Clone()
+    newEnemy:SetPrimaryPartCFrame(CFrame.new(randomSpawn))
+    newEnemy.Parent = game.Workspace
+end
+
+-- Auto-attack function
+function autoAttack()
+    while true do
+        wait(attackCooldown)
+        local humanoid = playerCharacter:FindFirstChild("Humanoid")
+        if humanoid then
+            for _, enemy in pairs(game.Workspace:GetChildren()) do
+                if enemy:IsA("Model") and enemy:FindFirstChild("Humanoid") then
+                    local distance = (playerCharacter.PrimaryPart.Position - enemy.PrimaryPart.Position).Magnitude
+                    if distance <= attackRange then
+                        enemy:FindFirstChild("Humanoid"):TakeDamage(enemyStats[playerLevel].damage)
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Player character setup
+if playerCharacter then
+    autoAttack()
+else
+    player.CharacterAdded:Connect(function(newCharacter)
+        playerCharacter = newCharacter
+        autoAttack()
+    end)
+end
+
+-- Main game loop
+while wait(5) do
+    spawnEnemy()
+end
